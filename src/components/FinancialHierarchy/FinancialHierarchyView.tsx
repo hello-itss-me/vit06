@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react'
-import { Download, PlusCircle, Save } from 'lucide-react'
+import { Download, CirclePlus as PlusCircle, Save } from 'lucide-react'
 import {
   FinancialRow,
   HierarchicalItem,
