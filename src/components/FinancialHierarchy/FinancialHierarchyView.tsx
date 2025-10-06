@@ -86,13 +86,34 @@ export const FinancialHierarchyView: React.FC<FinancialHierarchyViewProps> = ({
   }) => {
     if (!currentItemForMotorChange) return
 
+    const getBaseItemName = (itemName: string): string => {
+      return itemName.split('_ID_')[0].trim()
+    }
+
+    const getItemSuffix = (itemName: string): string => {
+      const parts = itemName.split('_ID_')
+      return parts.length > 1 ? '_ID_' + parts.slice(1).join('_ID_') : ''
+    }
+
+    const changedRow = flatData.find((row) => row.id === currentItemForMotorChange.id)
+    if (!changedRow) return
+
+    const oldBaseItemName = getBaseItemName(changedRow.itemName)
+    const newBaseItemName = newItemData.name
+
     setFlatData((prevData) =>
       prevData.map((row) => {
-        if (row.id === currentItemForMotorChange.id) {
+        const rowBaseItemName = getBaseItemName(row.itemName)
+
+        if (
+          row.positionNumber === changedRow.positionNumber &&
+          rowBaseItemName === oldBaseItemName
+        ) {
+          const suffix = getItemSuffix(row.itemName)
           return {
             ...row,
-            itemName: newItemData.name,
-            amount: newItemData.unitPrice,
+            itemName: newBaseItemName + suffix,
+            amount: row.id === currentItemForMotorChange.id ? newItemData.unitPrice : row.amount,
           }
         }
         return row
