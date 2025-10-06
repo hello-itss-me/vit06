@@ -8,6 +8,7 @@ import {
   updateReceptionItem,
   deleteReceptionItem,
   addReceptionItem,
+  updateBaseItemName,
 } from '../../services/receptionService'
 import { ArrowLeft } from 'lucide-react'
 import {
@@ -75,6 +76,22 @@ export const EditReception: React.FC = () => {
     }
   }
 
+  const handleUpdateBaseItemName = async (
+    motorId: string,
+    oldBaseName: string,
+    newName: string,
+    selectedItemId: string,
+    newPrice: number
+  ) => {
+    try {
+      await updateBaseItemName(motorId, oldBaseName, newName, selectedItemId, newPrice)
+      await loadReception()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Ошибка обновления базового названия')
+      throw err
+    }
+  }
+
   if (loading) {
     return (
       <AppLayout title="Загрузка...">
@@ -125,6 +142,7 @@ export const EditReception: React.FC = () => {
           onUpdateItem={handleUpdateItem}
           onDeleteItem={handleDeleteItem}
           onAddItem={handleAddItem}
+          onUpdateBaseItemName={handleUpdateBaseItemName}
         />
       </div>
     </AppLayout>

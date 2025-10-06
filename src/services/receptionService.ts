@@ -253,6 +253,56 @@ export const updateReceptionItem = async (
   }
 }
 
+export const updateBaseItemName = async (
+  motorId: string,
+  oldBaseItemName: string,
+  newBaseItemName: string,
+  selectedItemId?: string,
+  newPrice?: number
+) => {
+  const { data: items, error: fetchError } = await supabase
+    .from('reception_items')
+    .select('id, item_description')
+    .eq('accepted_motor_id', motorId)
+
+  if (fetchError) {
+    throw new Error(`Ошибка загрузки элементов: ${fetchError.message}`)
+  }
+
+  const getBaseItemName = (itemName: string): string => {
+    return itemName.split('_ID_')[0].trim()
+  }
+
+  const getItemSuffix = (itemName: string): string => {
+    const parts = itemName.split('_ID_')
+    return parts.length > 1 ? '_ID_' + parts.slice(1).join('_ID_') : ''
+  }
+
+  const itemsToUpdate = items.filter(
+    (item) => getBaseItemName(item.item_description) === oldBaseItemName
+  )
+
+  for (const item of itemsToUpdate) {
+    const suffix = getItemSuffix(item.item_description)
+    const newDescription = newBaseItemName + suffix
+
+    const updates: any = { item_description: newDescription }
+
+    if (selectedItemId === item.id && newPrice !== undefined) {
+      updates.price = newPrice
+    }
+
+    const { error } = await supabase
+      .from('reception_items')
+      .update(updates)
+      .eq('id', item.id)
+
+    if (error) {
+      throw new Error(`Ошибка обновления позиции: ${error.message}`)
+    }
+  }
+}
+
 export const deleteReceptionItem = async (itemId: string) => {
   const { error } = await supabase
     .from('reception_items')

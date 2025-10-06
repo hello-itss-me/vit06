@@ -1,9 +1,7 @@
 import React, { useState } from 'react'
-import { ChevronDown, ChevronRight, CreditCard as Edit, Trash2, Plus, Save, X, Repeat } from 'lucide-react'
+import { ChevronDown, ChevronRight, CreditCard as Edit, Trash2, Plus, Save, X } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { Input } from '../ui/Input'
-import { MotorSelectionModal } from './MotorSelectionModal'
-import { HierarchicalItem } from '../../types/financialHierarchy'
 
 export interface ReceptionItem {
   id: string
@@ -45,7 +43,6 @@ interface EditableReceptionPreviewProps {
   onUpdateItem: (itemId: string, updates: Partial<ReceptionItem>) => Promise<void>
   onDeleteItem: (itemId: string) => Promise<void>
   onAddItem: (motorId: string, item: Omit<ReceptionItem, 'id' | 'upd_document_id'>) => Promise<void>
-  onUpdateBaseItemName?: (motorId: string, oldBaseName: string, newName: string, selectedItemId: string, newPrice: number) => Promise<void>
 }
 
 interface PositionItemProps {
@@ -53,7 +50,6 @@ interface PositionItemProps {
   onEdit: (itemId: string, field: keyof ReceptionItem, value: string | number) => void
   onSave: (itemId: string) => void
   onDelete: (itemId: string) => void
-  onSelectMotor?: (itemId: string) => void
   isEditing: boolean
   editValues: Partial<ReceptionItem>
 }
@@ -63,7 +59,6 @@ const PositionItem: React.FC<PositionItemProps> = ({
   onEdit,
   onSave,
   onDelete,
-  onSelectMotor,
   isEditing,
   editValues,
 }) => {
@@ -80,27 +75,16 @@ const PositionItem: React.FC<PositionItemProps> = ({
       }`}
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {!isLinked && onSelectMotor && (
-            <button
-              onClick={() => onSelectMotor(item.id)}
-              className="text-gray-400 hover:text-blue-600 transition-colors p-1 rounded-full hover:bg-blue-50 flex-shrink-0"
-              title="Заменить позицию из справочника"
-            >
-              <Repeat size={14} />
-            </button>
+        <div className="flex-1 min-w-0">
+          {!isLinked && isEditing ? (
+            <Input
+              value={displayValues.item_description}
+              onChange={(e) => onEdit(item.id, 'item_description', e.target.value)}
+              className="h-8 text-sm"
+            />
+          ) : (
+            <p className="text-sm text-gray-900">{displayValues.item_description}</p>
           )}
-          <div className="flex-1 min-w-0">
-            {!isLinked && isEditing ? (
-              <Input
-                value={displayValues.item_description}
-                onChange={(e) => onEdit(item.id, 'item_description', e.target.value)}
-                className="h-8 text-sm"
-              />
-            ) : (
-              <p className="text-sm text-gray-900">{displayValues.item_description}</p>
-            )}
-          </div>
         </div>
         <div className="flex items-center gap-4">
           <div className="text-right">
@@ -177,7 +161,6 @@ interface TransactionGroupProps {
   onEdit: (itemId: string, field: keyof ReceptionItem, value: string | number) => void
   onSave: (itemId: string) => void
   onDelete: (itemId: string) => void
-  onSelectMotor?: (itemId: string) => void
 }
 
 const TransactionGroup: React.FC<TransactionGroupProps> = ({
@@ -187,7 +170,6 @@ const TransactionGroup: React.FC<TransactionGroupProps> = ({
   onEdit,
   onSave,
   onDelete,
-  onSelectMotor,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -228,7 +210,6 @@ const TransactionGroup: React.FC<TransactionGroupProps> = ({
               onEdit={onEdit}
               onSave={onSave}
               onDelete={onDelete}
-              onSelectMotor={onSelectMotor}
               isEditing={editingItems[item.id] !== undefined}
               editValues={editingItems[item.id] || {}}
             />
@@ -246,7 +227,6 @@ interface BaseItemGroupProps {
   onEdit: (itemId: string, field: keyof ReceptionItem, value: string | number) => void
   onSave: (itemId: string) => void
   onDelete: (itemId: string) => void
-  onSelectMotor?: (itemId: string) => void
 }
 
 const BaseItemGroup: React.FC<BaseItemGroupProps> = ({
@@ -256,7 +236,6 @@ const BaseItemGroup: React.FC<BaseItemGroupProps> = ({
   onEdit,
   onSave,
   onDelete,
-  onSelectMotor,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -293,7 +272,6 @@ const BaseItemGroup: React.FC<BaseItemGroupProps> = ({
             onEdit={onEdit}
             onSave={onSave}
             onDelete={onDelete}
-            onSelectMotor={onSelectMotor}
           />
           <TransactionGroup
             type="Расходы"
@@ -302,7 +280,6 @@ const BaseItemGroup: React.FC<BaseItemGroupProps> = ({
             onEdit={onEdit}
             onSave={onSave}
             onDelete={onDelete}
-            onSelectMotor={onSelectMotor}
           />
         </div>
       )}
@@ -317,7 +294,6 @@ interface WorkGroupProps {
   onEdit: (itemId: string, field: keyof ReceptionItem, value: string | number) => void
   onSave: (itemId: string) => void
   onDelete: (itemId: string) => void
-  onSelectMotor?: (itemId: string) => void
 }
 
 const WorkGroup: React.FC<WorkGroupProps> = ({
@@ -327,7 +303,6 @@ const WorkGroup: React.FC<WorkGroupProps> = ({
   onEdit,
   onSave,
   onDelete,
-  onSelectMotor,
 }) => {
   const [isExpanded, setIsExpanded] = useState(true)
 
@@ -376,7 +351,6 @@ const WorkGroup: React.FC<WorkGroupProps> = ({
               onEdit={onEdit}
               onSave={onSave}
               onDelete={onDelete}
-              onSelectMotor={onSelectMotor}
             />
           ))}
         </div>
@@ -392,7 +366,6 @@ interface MotorGroupProps {
   onSave: (itemId: string) => void
   onDelete: (itemId: string) => void
   onAdd: (motorId: string, item: Omit<ReceptionItem, 'id' | 'upd_document_id'>) => void
-  onSelectMotor?: (itemId: string) => void
   newItem: Partial<ReceptionItem> | null
   onNewItemChange: (field: keyof ReceptionItem, value: string | number) => void
 }
@@ -404,7 +377,6 @@ const MotorGroup: React.FC<MotorGroupProps> = ({
   onSave,
   onDelete,
   onAdd,
-  onSelectMotor,
   newItem,
   onNewItemChange,
 }) => {
@@ -478,7 +450,6 @@ const MotorGroup: React.FC<MotorGroupProps> = ({
               onEdit={onEdit}
               onSave={onSave}
               onDelete={onDelete}
-              onSelectMotor={onSelectMotor}
             />
           ))}
 
@@ -571,15 +542,9 @@ export const EditableReceptionPreview: React.FC<EditableReceptionPreviewProps> =
   onUpdateItem,
   onDeleteItem,
   onAddItem,
-  onUpdateBaseItemName,
 }) => {
   const [editingItems, setEditingItems] = useState<Record<string, Partial<ReceptionItem>>>({})
   const [newItems, setNewItems] = useState<Record<string, Partial<ReceptionItem>>>({})
-  const [isMotorModalOpen, setIsMotorModalOpen] = useState(false)
-  const [currentItemForMotorChange, setCurrentItemForMotorChange] = useState<{
-    item: HierarchicalItem
-    motorId: string
-  } | null>(null)
 
   const handleEdit = (itemId: string, field: keyof ReceptionItem, value: string | number) => {
     if (field === 'item_description' && editingItems[itemId] === undefined) {
@@ -639,94 +604,44 @@ export const EditableReceptionPreview: React.FC<EditableReceptionPreviewProps> =
     })
   }
 
-  const handleSelectMotor = (itemId: string) => {
-    const motor = reception.motors.find((m) => m.items.some((i) => i.id === itemId))
-    const item = motor?.items.find((i) => i.id === itemId)
-
-    if (item && motor) {
-      const hierarchicalItem: HierarchicalItem = {
-        id: item.id,
-        itemName: item.item_description,
-        quantity: item.quantity,
-        unitPrice: item.price,
-        totalAmount: item.price * item.quantity,
-      }
-      setCurrentItemForMotorChange({ item: hierarchicalItem, motorId: motor.id })
-      setIsMotorModalOpen(true)
-    }
-  }
-
-  const handleMotorSelect = async (newItemData: { name: string; unitPrice: number }) => {
-    if (!currentItemForMotorChange || !onUpdateBaseItemName) return
-
-    const getBaseItemName = (itemName: string): string => {
-      return itemName.split('_ID_')[0].trim()
-    }
-
-    const oldBaseName = getBaseItemName(currentItemForMotorChange.item.itemName)
-
-    await onUpdateBaseItemName(
-      currentItemForMotorChange.motorId,
-      oldBaseName,
-      newItemData.name,
-      currentItemForMotorChange.item.id,
-      newItemData.unitPrice
-    )
-
-    setIsMotorModalOpen(false)
-    setCurrentItemForMotorChange(null)
-  }
-
   return (
-    <>
-      <div className="space-y-6">
-        <div className="bg-gray-50 p-4 rounded-lg">
-          <h3 className="font-semibold text-gray-700 mb-2">Информация о приемке</h3>
-          <div className="grid grid-cols-3 gap-4 text-sm">
-            <div>
-              <span className="text-gray-500">Номер приемки:</span>
-              <p className="font-medium">{reception.reception_number}</p>
-            </div>
-            <div>
-              <span className="text-gray-500">Дата приемки:</span>
-              <p className="font-medium">
-                {new Date(reception.reception_date).toLocaleDateString('ru-RU')}
-              </p>
-            </div>
-            <div>
-              <span className="text-gray-500">Контрагент:</span>
-              <p className="font-medium">{reception.counterparties.name}</p>
-            </div>
+    <div className="space-y-6">
+      <div className="bg-gray-50 p-4 rounded-lg">
+        <h3 className="font-semibold text-gray-700 mb-2">Информация о приемке</h3>
+        <div className="grid grid-cols-3 gap-4 text-sm">
+          <div>
+            <span className="text-gray-500">Номер приемки:</span>
+            <p className="font-medium">{reception.reception_number}</p>
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <h3 className="font-semibold text-gray-700">Двигатели ({reception.motors.length})</h3>
-          {reception.motors.map((motor) => (
-            <MotorGroup
-              key={motor.id}
-              motor={motor}
-              editingItems={editingItems}
-              onEdit={handleEdit}
-              onSave={handleSave}
-              onDelete={handleDelete}
-              onAdd={handleAddItem}
-              onSelectMotor={onUpdateBaseItemName ? handleSelectMotor : undefined}
-              newItem={newItems[motor.id] || null}
-              onNewItemChange={(field, value) => handleNewItemChange(motor.id, field, value)}
-            />
-          ))}
+          <div>
+            <span className="text-gray-500">Дата приемки:</span>
+            <p className="font-medium">
+              {new Date(reception.reception_date).toLocaleDateString('ru-RU')}
+            </p>
+          </div>
+          <div>
+            <span className="text-gray-500">Контрагент:</span>
+            <p className="font-medium">{reception.counterparties.name}</p>
+          </div>
         </div>
       </div>
 
-      {currentItemForMotorChange && (
-        <MotorSelectionModal
-          isOpen={isMotorModalOpen}
-          onClose={() => setIsMotorModalOpen(false)}
-          currentItem={currentItemForMotorChange.item}
-          onMotorSelect={handleMotorSelect}
-        />
-      )}
-    </>
+      <div className="space-y-4">
+        <h3 className="font-semibold text-gray-700">Двигатели ({reception.motors.length})</h3>
+        {reception.motors.map((motor) => (
+          <MotorGroup
+            key={motor.id}
+            motor={motor}
+            editingItems={editingItems}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onDelete={handleDelete}
+            onAdd={handleAddItem}
+            newItem={newItems[motor.id] || null}
+            onNewItemChange={(field, value) => handleNewItemChange(motor.id, field, value)}
+          />
+        ))}
+      </div>
+    </div>
   )
 }
